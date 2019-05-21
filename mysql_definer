@@ -1,0 +1,58 @@
+# definer 권한 오류
+# The user specified as a definer ('kant'@'%') does not exist; nested exception is java.sql.SQLException: The user specified as a definer ('sigongmsg'@'%') does not exist"
+
+mysql> select db,name,definer,security_type from proc;
++--------------+-------------------------------------+---------------------+---------------+
+| sys          | extract_schema_from_file_name       | mysql.sys@localhost | INVOKER       |
+| sys          | extract_table_from_file_name        | mysql.sys@localhost | INVOKER       |
+| sys          | format_bytes                        | mysql.sys@localhost | INVOKER       |
+| sys          | format_path                         | mysql.sys@localhost | INVOKER       |
+| sys          | format_statement                    | mysql.sys@localhost | INVOKER       |
+| sys          | format_time                         | mysql.sys@localhost | INVOKER       |
+| sys          | list_add                            | mysql.sys@localhost | INVOKER       |
+| sys          | list_drop                           | mysql.sys@localhost | INVOKER       |
+| sys          | ps_is_account_enabled               | mysql.sys@localhost | INVOKER       |
+| sys          | ps_is_consumer_enabled              | mysql.sys@localhost | INVOKER       |
+| sys          | ps_is_instrument_default_enabled    | mysql.sys@localhost | INVOKER       |
+| sys          | ps_is_instrument_default_timed      | mysql.sys@localhost | INVOKER       |
+| sys          | ps_is_thread_instrumented           | mysql.sys@localhost | INVOKER       |
+| sys          | ps_thread_id                        | mysql.sys@localhost | INVOKER       |
+| sys          | ps_thread_account                   | mysql.sys@localhost | INVOKER       |
+| sys          | ps_thread_stack                     | mysql.sys@localhost | INVOKER       |
+| sys          | ps_thread_trx_info                  | mysql.sys@localhost | INVOKER       |
+| sys          | sys_get_config                      | mysql.sys@localhost | INVOKER       |
+| sys          | version_major                       | mysql.sys@localhost | INVOKER       |
+| sys          | version_minor                       | mysql.sys@localhost | INVOKER       |
+| sys          | version_patch                       | mysql.sys@localhost | INVOKER       |
+| sys          | create_synonym_db                   | mysql.sys@localhost | INVOKER       |
+| sys          | execute_prepared_stmt               | mysql.sys@localhost | INVOKER       |
+| sys          | diagnostics                         | mysql.sys@localhost | INVOKER       |
+| sys          | ps_statement_avg_latency_histogram  | mysql.sys@localhost | INVOKER       |
+| sys          | ps_trace_statement_digest           | mysql.sys@localhost | INVOKER       |
+| sys          | ps_trace_thread                     | mysql.sys@localhost | INVOKER       |
+| sys          | ps_setup_disable_background_threads | mysql.sys@localhost | INVOKER       |
+| sys          | ps_setup_disable_consumer           | mysql.sys@localhost | INVOKER       |
+| sys          | ps_setup_disable_instrument         | mysql.sys@localhost | INVOKER       |
+| sys          | ps_setup_disable_thread             | mysql.sys@localhost | INVOKER       |
+| sys          | ps_setup_enable_background_threads  | mysql.sys@localhost | INVOKER       |
+| sys          | ps_setup_enable_consumer            | mysql.sys@localhost | INVOKER       |
+| sys          | ps_setup_enable_instrument          | mysql.sys@localhost | INVOKER       |
+| sys          | ps_setup_enable_thread              | mysql.sys@localhost | INVOKER       |
+| sys          | ps_setup_reload_saved               | mysql.sys@localhost | INVOKER       |
+| sys          | ps_setup_reset_to_default           | mysql.sys@localhost | INVOKER       |
+| sys          | ps_setup_save                       | mysql.sys@localhost | INVOKER       |
+| sys          | ps_setup_show_disabled              | mysql.sys@localhost | INVOKER       |
+| sys          | ps_setup_show_disabled_consumers    | mysql.sys@localhost | INVOKER       |
+| sys          | ps_setup_show_disabled_instruments  | mysql.sys@localhost | INVOKER       |
+| sys          | ps_setup_show_enabled               | mysql.sys@localhost | INVOKER       |
+| sys          | ps_setup_show_enabled_consumers     | mysql.sys@localhost | INVOKER       |
+| sys          | ps_setup_show_enabled_instruments   | mysql.sys@localhost | INVOKER       |
+| sys          | ps_truncate_all_tables              | mysql.sys@localhost | INVOKER       |
+| sys          | statement_performance_analyzer      | mysql.sys@localhost | INVOKER       |
+| sys          | table_exists                        | mysql.sys@localhost | INVOKER       |
+| kant_db      | getConversationCount                | kant@%         | DEFINER            |
+| kant_db      | getPosition                         | kant@%         | DEFINER            |
++--------------+-------------------------------------+---------------------+---------------+
+
+# definer 생성 호스트 IP를 아래와 같이 변경한다.
+mysql> UPDATE `mysql`.`proc` SET `definer`='kant@'%' WHERE  `db`='kant_db' AND `name`='getPosition' AND `type`='FUNCTION';
