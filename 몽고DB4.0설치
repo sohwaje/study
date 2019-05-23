@@ -1,0 +1,37 @@
+# yum install -y mongodb-org
+=============================================================================================================
+ Package                          Arch                 Version                   Repository             Size
+=============================================================================================================
+Installing:
+ mongodb-org                      x86_64               4.0.9-1.el7               MongoDB               5.8 k
+Installing for dependencies:
+ mongodb-org-mongos               x86_64               4.0.9-1.el7               MongoDB                12 M
+ mongodb-org-server               x86_64               4.0.9-1.el7               MongoDB                21 M
+ mongodb-org-shell                x86_64               4.0.9-1.el7               MongoDB                13 M
+ mongodb-org-tools                x86_64               4.0.9-1.el7               MongoDB                46 M
+
+Transaction Summary
+=============================================================================================================
+# systemctl start mongod
+# ls -l /var/lib/mongo
+# ls -l /etc/mongod.conf
+# netstat -lnp | grep 27017
+
+# systemctl start mongo
+# mongo
+> use admin
+> db.createUser({ user: "admin", pwd: "admin", roles: [{ role:"userAdminAnyDatabase", db: "admin" }] })
+> exit
+
+# vim /etc/mongod.conf   # uncomment #
+security:
+  authorization: enabled
+  
+# systemctl restart mongo
+
+# mongo --port 27017 -u "admin" -p "admin" --authenticationDatabase "admin"    
+> show dbs
+admin            0.000GB
+config           0.000GB
+local            0.000GB
+sigongBrowserDB  0.000GB
