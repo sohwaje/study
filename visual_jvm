@@ -82,3 +82,8 @@ grant codebase "file:${java.home}/../lib/tools.jar" {
 # rmiregistry 2020&
 # jstatd -J-Djava.security.policy=jstatd.all.policy -p 2020&
 # jstatd -J-Djava.security.policy=jstatd.all.policy -J-Djava.rmi.server.hostname=$TARGET_IP -p 2020
+
+# 5. 방화벽에서 개방해야 할 TCP 포트
+# jstatd 포트 2개(18888)
+# rmiregistery 포트 1개(2020)
+# jstatd 포트 2개(랜덤)
