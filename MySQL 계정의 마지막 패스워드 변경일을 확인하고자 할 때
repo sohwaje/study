@@ -1,0 +1,16 @@
+# 시스템을 운영하다보면 DB 사용자 계정의 패스워드를 언제 마지막으로 변경하였는지 확인할 필요가 있다. 아래와 같이 간단하게 확인할 수 있다. 
+# MySQL은 인증할 때 계정과 호스트 정보를 동시에 확인하므로 사용자 계정, 호스트, DB명도 함께 확인해야 한다.(MySQL5.7 기준)
+
+mysql> SELECT a.user, a.host, a.authentication_string, a.password_last_changed, b.db 
+-> FROM mysql.user as a 
+-> INNER JOIN mysql.db as b 
+-> WHERE a.user = b.user;
++--------------+----------------+-------------------------------------------+-----------------------+--------------+
+| user         | host           | authentication_string                     | password_last_changed | db           |
++--------------+----------------+-------------------------------------------+-----------------------+--------------+
+| mysql.sys    | localhost      | *THISISNOTAVALIDPASSWORDTHATCANBEUSEDHERE | 2016-05-03 11:09:47   | sys          |
+| Hegel        | 10.10.10.10    | *BDFDSFDFSDFSDFSDFSDFSDFSDFS7AD1AC118AF9D | 2018-04-30 23:22:51   | hegeldb      |
+| KANT         | 10.10.10.11    | *DFDFDFDFDFD39FFF305DEB5ACE67AD1AC118AF9D | 2018-07-01 19:22:51   | kantdb       |
+| platon       | 10.10.10.12    | *RFFSFSDFDS439FFF305DEB5ACE67AD1AC118AF9D | 2018-02-19 06:22:51   | platondb     |
+| aristo       | 10.10.10.13    | *HJJFHDGDFDFDGFGDFFE7191BDE77133CF6250A3A | 2019-04-05 00:25:10   | aristodb     |
++--------------+----------------+-------------------------------------------+-----------------------+--------------+
