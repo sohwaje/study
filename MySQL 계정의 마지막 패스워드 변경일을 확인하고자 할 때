@@ -14,3 +14,18 @@ mysql> SELECT a.user, a.host, a.authentication_string, a.password_last_changed, 
 | platon       | 10.10.10.12    | *RFFSFSDFDS439FFF305DEB5ACE67AD1AC118AF9D | 2018-02-19 06:22:51   | platondb     |
 | aristo       | 10.10.10.13    | *HJJFHDGDFDFDGFGDFFE7191BDE77133CF6250A3A | 2019-04-05 00:25:10   | aristodb     |
 +--------------+----------------+-------------------------------------------+-----------------------+--------------+
+
+
+# 자주 확인하기 수월하게 view 테이블을 만들어 놓자.
+mysql> CREATE VIEW mysqluserdbinfo 
+-> AS SELECT a.user, a.host, a.authentication_string, b.db, b.Grant_priv, b.select_priv, b.insert_priv, b.alter_priv, b.update_priv 
+-> FROM mysql.user as a 
+-> INNER JOIN mysql.db as b 
+-> WHERE a.user = b.user;
+
+mysql> SHOW FULL TABLES IN mysql WHERE TABLE_TYPE LIKE 'VIEW';
++-----------------+------------+
+| Tables_in_mysql | Table_type |
++-----------------+------------+
+| mysqluserdbinfo | VIEW       |
++-----------------+------------+
