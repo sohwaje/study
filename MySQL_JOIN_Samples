@@ -18,7 +18,7 @@ mysql> select * from employees e INNER JOIN dept_manager d on d.emp_no = e.emp_n
 | 110420 | 1963-07-27 | Oscar      | Ghazalie     | M      | 1992-02-05 | d004    | 110420 | 1996-08-30 | 9999-01-01 |
 +--------+------------+------------+--------------+--------+------------+---------+--------+------------+------------+
 
-LEFT JOIN: 왼쪽 테이블의 모든 레코드와 오른쪽 테이블의 일치하는 레코드를 반환합니다. 오른쪽에 일치하는 레코드가 없으면 오른쪽에서는 결과가 NULL이 된다.
+LEFT JOIN: 왼쪽 테이블의 모든 레코드와 오른쪽 테이블의 일치하는 레코드를 반환한다. 오른쪽에 일치하는 레코드가 없으면 오른쪽에서는 결과가 NULL이 된다.
 mysql> select * from employees e LEFT JOIN dept_manager d on d.emp_no = e.emp_no limit 10;
 +--------+------------+------------+-----------+--------+------------+---------+--------+-----------+---------+
 | emp_no | birth_date | first_name | last_name | gender | hire_date  | dept_no | emp_no | from_date | to_date |
@@ -35,7 +35,7 @@ mysql> select * from employees e LEFT JOIN dept_manager d on d.emp_no = e.emp_no
 |  10010 | 1963-06-01 | Duangkaew  | Piveteau  | F      | 1989-08-24 | NULL    |   NULL | NULL      | NULL    |
 +--------+------------+------------+-----------+--------+------------+---------+--------+-----------+---------+
 
-RIGHT JOIN: 오른쪽 테이블의 모든 레코드와 왼쪽 테이블의 일치하는 레코드를 반환합니다. 왼쪽에 일치하는 레코드가 없으면 왼쪽에서는 결과가 NULL이 된다.
+RIGHT JOIN: 오른쪽 테이블의 모든 레코드와 왼쪽 테이블의 일치하는 레코드를 반환다. 왼쪽에 일치하는 레코드가 없으면 왼쪽에서는 결과가 NULL이 된다.
 mysql> select * from dept_manager d RIGHT JOIN employees e on d.emp_no = e.emp_no limit 10;
 +---------+--------+-----------+---------+--------+------------+------------+-----------+--------+------------+
 | dept_no | emp_no | from_date | to_date | emp_no | birth_date | first_name | last_name | gender | hire_date  |
