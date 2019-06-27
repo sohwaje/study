@@ -52,3 +52,9 @@ sysctl -w net.ipv4.tcp_fack=1
 sysctl -w kernel.msgmnb=65536
 sysctl -w kernel.msgmax=65536
 sysctl -w net.netfilter.nf_conntrack_max=600000
+
+
+
+##  if ip_conntrack module wasn't loaded
+$ echo "ip_conntrack" >> /etc/modules
+$ modprobe ip_conntrack
