@@ -8,7 +8,11 @@
 3. worker_connections
 - 각 worker process가 처리할 수 있는 연결 수를 설정하는 것이다. 
 - "unlimit -n" 명령어로 이 값을 결정할 수 있다.(이 값을 수정하기 위해서는 /etc/security/limits.conf 파일을 수정해야 한다.)
-- 최대 연결 사용자는 worker process와 worker connection를 곱하여 계산할 수 있다.
-     max_clients = worker_processes * worker_connections
-
+- 최대 연결 사용자는 worker process와 worker connection를 곱하여 계산할 수 있다.(max_clients = worker_processes * worker_connections)
+     
 4. Buffers
+- 이 값이 너무 작으면 NGINX는 read/write과 같은 I/O를 발생시키는 임시 파일 안에 upstream에서 발생하는 응답을 저장해야 하고, 트래픽이 많아지면 더 문제가 된다.
+client_body_buffer_size 8K;
+client_header_buffer_size 1k;
+client_max_body_size 2m;
+large_client_header_buffers 2 1k;
