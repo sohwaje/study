@@ -1,0 +1,13 @@
+1. 설치 
+- 필요한 모듈만 설치하여 nginx를 실행한다.
+
+2. worker_processes 
+- CPU CORE의 개수에 비례하여 설정한다. CORE가 4개이면 worker_processes = 4로 설정한다.
+- 많은 수의 정적 파일을 사용하고 정적 파일의 사이즈가 가용 메모리보다 크면, worker_processes를 늘려서 디스크의 대역폭을 더 활용할 수도 있다.
+
+3. worker_connections
+- 각 worker process가 처리할 수 있는 연결 수를 설정하는 것이다. 
+- "unlimit -n" 명령어로 이 값을 결정할 수 있다.(이 값을 수정하기 위해서는 /etc/security/limits.conf 파일을 수정해야 한다.)
+- 최대 연결 사용자는 worker process와 worker connection를 곱하여 계산할 수 있다.
+MaxClients = worker_processes * worker_connections
+4. 
