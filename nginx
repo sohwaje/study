@@ -16,3 +16,7 @@ client_body_buffer_size 8K;
 client_header_buffer_size 1k;
 client_max_body_size 2m;
 large_client_header_buffers 2 1k;
+
+1)client_body_buffer_size: 이 지시자는 client request body의 버퍼 사이즈를 지정한다. 
+request body가 버퍼 크기보다 크면, 전체 request body 또는 일부를 임시 파일에 저장한다.
+2)
