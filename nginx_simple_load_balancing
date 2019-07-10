@@ -1,4 +1,4 @@
-
+# nginx.conf
 http {
   upstream myproject {
     server 127.0.0.1:8000 weight=3;
