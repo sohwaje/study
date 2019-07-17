@@ -1,0 +1,12 @@
+# /nginx/sites-available/default
+# 기본 캐치올 가상 호스트 설정
+server {
+        listen 80 default;
+        server_name _;
+    location / {
+        root /nginx/html/default;
+        index default.html;
+    }
+}
+
+# ln -s /nginx/sites-available/default /nginx/sites-enabled/default
