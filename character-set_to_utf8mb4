@@ -1,0 +1,44 @@
+[1] 설정 파일 변경
+# vi /etc/my.cnf
+[client]
+default-character-set = utf8mb4
+
+[mysql]
+default-character-set = utf8mb4
+
+[mysqld]
+# character set parameter
+character-set-client-handshake = FALSE
+init_connect             = SET collation_connection = utf8mb4_unicode_ci
+init_connect             = SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci
+character-set-server     = utf8mb4
+collation-server = utf8mb4_unicode_ci
+
+[2]mysql 재시작
+
+[3] database 및 table Character set 변경
+ALTER DATABASE database_name CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci; 
+ALTER TABLE table_name CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+[4] 확인
+mysql> status;
+--------------
+/mysql/bin/mysql  Ver 14.14 Distrib 5.7.12, for linux-glibc2.5 (x86_64) using  EditLine wrapper
+
+Connection id:          7
+Current database:
+Current user:           root@localhost
+SSL:                    Not in use
+Current pager:          stdout
+Using outfile:          ''
+Using delimiter:        ;
+Server version:         5.7.12-enterprise-commercial-advanced-log MySQL Enterprise Server - Advanced Edition (Commercial)
+Protocol version:       10
+Connection:             Localhost via UNIX socket
+Server characterset:    utf8mb4
+Db     characterset:    utf8mb4
+Client characterset:    utf8mb4
+Conn.  characterset:    utf8mb4
+UNIX socket:            /tmp/mysql.sock
+Uptime:                 27 sec
+
