@@ -1,0 +1,31 @@
+- 복제 구성에서 업그레이드 작업은 슬레이브 및 마스터에서 개별적으로 수행하는 것이 안전하다.
+- Slave 서버일 경우 복제를 다시 시작하기 전에 업그레이드 된 슬레이브에서 mysql_upgrade 명령을 실행해야 한다.
+
+다음은 표준적인 mysql_upgrade 작업의 절차이다.
+
+SLAVE 작업 
+A. my.cnf 파일에 --skip-slave-start 옵션 추가 #서버가 시작할때 slave 쓰레드를 시작하지 않음 
+B. STOP SLAVE; 
+C. mysql_upgrade -u root -p 
+D. mysql -u root -p --execute="SET GLOBAL innodb_fast_shutdown=0" 
+E. mysql 데몬 재시작 
+
+MASTER 작업 
+F. mysql_upgrade -u root -p 
+G. mysql -u root -p --execute="SET GLOBAL innodb_fast_shutdown=0" 
+H. mysql 데몬 재시작 
+
+SLAVE 작업 
+I. START SLAVE; 
+J. my.cnf 파일에 --skip-slave-start 옵션 제거 
+
+주의: 
+* mysql_upgrade를 실행하기 전에 모든 데이터베이스를 백업 
+* mysql_upgrade를 수행하고 결과로 나온 메세지를 자세히 확인. (마스터 및 슬레이브에서 개별적으로 진행한 작업이 있다면 빈로그를 통해 슬레이브에서 재실행 되지 않도록 주의) 
+* 테이블 검사는 완료하는 데 시간이 오래 걸릴 수 있으며 각 테이블은 처리되는 동안 잠겨 다른 세션에서 사용할 수 없다.
+
+참고: 
+1319877.1 - Complete Upgrade Process for your Existing MySQL Server to Newer Versions 
+https://dev.mysql.com/doc/refman/5.7/en/upgrade-binary-package.html#upgrade-procedure-inplace 
+https://dev.mysql.com/doc/refman/5.7/en/replication-upgrade.html 
+https://dev.mysql.com/doc/refman/5.7/en/replication-compatibility.html 
