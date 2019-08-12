@@ -2,8 +2,12 @@
 2. MySQL replication 구성 
 - Master 서버에서 mha MySQL 계정 생성
 mysql> grant all on *.* to 'mhauser'@'%'  identified by 'mhauser'; 
+mysql> flush privileges;
+- /etc/hosts 파일에 각 노드의 호스트네임 설정(Master, Slave, Manager)
+10.0.0.1 ms
+10.0.0.2 n1
+10.0.0.3 m
 
-출처: https://skibis.tistory.com/98 [Skibi's Notepad]
 3. Perl 모듈 설치
 Master>$ yum -y install perl-CPAN perl-DBD-MySQL perl-Config-Tiny perl-Log-Dispatch perl-Parallel-ForkManager perl-Module-Install
 Slave>$ yum -y install perl-CPAN perl-DBD-MySQL perl-Config-Tiny perl-Log-Dispatch perl-Parallel-ForkManager perl-Module-Install
@@ -16,9 +20,10 @@ $ perl -MCPAN -e "install Log::Dispatch"
 $ perl -MCPAN -e "install Parallel::ForkManager"
 
 5. Manager, Master, Slave 양방향 ssh remote login 설정(root, mha 계정)
-# configration both A and B
 $ ssh-keygen -t rsa
-$ ssh-copy-id -i ~/.ssh/id_rsa.pub root@[host]
+$ ssh-copy-id -i ~/.ssh/id_rsa.pub root@ms
+$ ssh-copy-id -i ~/.ssh/id_rsa.pub root@n1
+$ ssh-copy-id -i ~/.ssh/id_rsa.pub root@m
 $ chmod 700 ~/.ssh/
 $ chmod 600 ~/.ssh/authorized_keys
 
@@ -48,7 +53,7 @@ $ make install
 7. mha.cnf 생성
 $ vi /etc/mha.cnf
 [server default]
-user=mhauser			# 각각의 node에 접속할 mysql 계정
+user=mhauser			# 각각의 node에 접속할 mysql 계정m
 password=mhauser		# 패스워드
 repl_user=replica
 repl_password=tlrhdaleldj!@#
@@ -62,9 +67,40 @@ master_ip_online_change_script=/mha/bin/master_ip_online_change
 [server1]
 hostname=ms
 master_binlog_dir=/home/mysql_log
-
 [server2]
 hostname=n1
-master_binlog_dir=/home/mysql_log/
+master_binlog_dir=/home/mysql_log
+===============================================================================================================================
+- master_ip_failover, master_ip_online_change 스크립트를 복사하고 아래 스크립트를 맨 마지막 줄에 추가한다.
+$ cp /mha/mha4mysql-manager-0.57/samples/scripts/master_ip_failover /mha/bin
+$ cp /mha/mha4mysql-manager-0.57/samples/scripts/master_ip_online_change /mha/bin
 
+  if($new_master_ip eq "$MASTER_IP"){
+          system("/bin/sh /mha/bin/change_virtual_ip_slave_to_master.sh");
+ }  
+         elsif($new_master_ip eq "$SLAVE_IP"){       
+          system("/bin/sh /mha/bin/change_virtual_ip_master_to_slave.sh");
+    }
+          $exit_code = 0;
+};
+
+
+8. vi /mha/bin/change_virtual_ip_master_to_slave.sh  # master to slave vip 전환 스크립트 생성
+#!/bin/sh
+ssh root@ms /sbin/ifconfig eth0:0 down
+ssh root@n1 /sbin/ifconfig eth0:0 10.10.30.111 up
+ssh root@n1 /sbin/arping -c3 -D -I eth0 -s 10.10.30.111 10.10.30.111
+
+9. vi /mha/bin/change_virtual_ip_slave_to_master.sh  # slave to master vip 전환 스크립트 생성
+#!/bin/sh
+ssh root@n1 /sbin/ifconfig eth0:0 down
+ssh root@ms /sbin/ifconfig eth0:0 10.10.30.111 netmask 255.255.255.0 broadcast 10.10.30.255 up
+ssh root@ms /sbin/arping -c3 -D -I eth0 -s 10.10.30.111 10.10.30.111
+
+10. mha_start.sh 스크립트 생성
+nohup /engn001/mha4mysql-manager-0.57/bin/masterha_manager --conf=/etc/mha.cnf --ignore_last_failover < /dev/null > /logs001/mha/mha.log 2>&1 &
+
+11. MHA 기동
+$ ./mha_start.sh
+$ ps -ef | grep manager
 
