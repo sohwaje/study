@@ -38,7 +38,7 @@ $ restorecon -R -v ~/.ssh
 
 6. MHA 설치
 - MHA node 설치(Master, Slave, Manager)
-$  tar -zxvpf mha4mysql-node-0.57.tar.gz
+$ tar -zxvpf mha4mysql-node-0.57.tar.gz
 $ cd mha4mysql-node-0.57
 $ perl Makefile.PL
 $ make
@@ -52,13 +52,6 @@ $ chown -R mhauser:mysql /mha
 - MHA Manager 설치(Manager)
 $ tar -zxvpf mha4mysql-manager-0.57.tar.gz
 $ mv mha4mysql-manager-0.57 /mha/
-$ cd mha4mysql-node-0.57
-$ perl Makefile.PL
-$ make
-$ make install
-
-- MHA node(master, slave, manager) 
-$ tar -zxvpf mha4mysql-node-0.57.tar.gz
 $ cd mha4mysql-node-0.57
 $ perl Makefile.PL
 $ make
@@ -100,22 +93,31 @@ $ cp /mha/mha4mysql-manager-0.57/samples/scripts/master_ip_online_change /mha/bi
 };
 
 
-8. vi /mha/bin/change_virtual_ip_master_to_slave.sh  # master to slave vip 전환 스크립트 생성
+8. vi /mha/bin/change_virtual_ip_master_to_slave.sh  # master to slave vip 전환 스크립트 생성, VIP는 10.10.30.11
 #!/bin/sh
-ssh root@ms /sbin/ifconfig eth0:0 down
-ssh root@n1 /sbin/ifconfig eth0:0 10.10.30.111 up
-ssh root@n1 /sbin/arping -c3 -D -I eth0 -s 10.10.30.111 10.10.30.111
+ssh -p 16215 mhauser@ms sudo /sbin/ifconfig eth0:0 down
+ssh -p 16215 mhauser@n1 sudo /sbin/ifconfig eth0:0 10.10.30.111 up
+ssh -p 16215 mhauser@n1 sudo /sbin/arping -c3 -D -I eth0 -s 10.10.30.111 10.10.30.111
 
 9. vi /mha/bin/change_virtual_ip_slave_to_master.sh  # slave to master vip 전환 스크립트 생성
 #!/bin/sh
-ssh root@n1 /sbin/ifconfig eth0:0 down
-ssh root@ms /sbin/ifconfig eth0:0 10.10.30.111 netmask 255.255.255.0 broadcast 10.10.30.255 up
-ssh root@ms /sbin/arping -c3 -D -I eth0 -s 10.10.30.111 10.10.30.111
+ssh -p 16215 mhauser@n1 sudo /sbin/ifconfig eth0:0 down
+ssh -p 16215 mhauser@ms sudo /sbin/ifconfig eth0:0 10.10.30.111 netmask 255.255.255.0 broadcast 10.10.30.255 up
+ssh -p 16215 mhauser@ms sudo /sbin/arping -c3 -D -I eth0 -s 10.10.30.111 10.10.30.111
 
 10. mha_start.sh 스크립트 생성
-nohup /engn001/mha4mysql-manager-0.57/bin/masterha_manager --conf=/etc/mha.cnf --ignore_last_failover < /dev/null > /logs001/mha/mha.log 2>&1 &
+nohup /mha/mha4mysql-manager-0.57/bin/masterha_manager --conf=/etc/mha.cnf --ignore_last_failover < /dev/null > /mha/log/mha.log 2>&1 &
 
-11. MHA 기동
+11. ssh test
+$ su - mhauser 
+$ cd /mha/mha4mysql-manager-0.57/bin
+$ ./masterha_check_ssh --conf=/etc/mha.cnf
+
+12. replication check
+$ cd /mha/mha4mysql-manager-0.57/bin
+$ ./masterha_check_repl --conf=/etc/mha.cnf
+
+13. MHA 기동
 $ ./mha_start.sh
 $ ps -ef | grep manager
 
