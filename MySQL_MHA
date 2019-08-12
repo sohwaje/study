@@ -3,6 +3,12 @@
 - Master 서버에서 mha MySQL 계정 생성
 mysql> grant all on *.* to 'mhauser'@'%'  identified by 'mhauser'; 
 mysql> flush privileges;
+
+- 모드 노드에 mhauser 리눅스 계정 생성
+$ useradd mhauser
+$ vi /etc/sudoers 맨 아래에 아래 내용 추가(sudo를 이용하여 명령어 실행)
+mhauser ALL=NOPASSWD: ALL
+
 - /etc/hosts 파일에 각 노드의 호스트네임 설정(Master, Slave, Manager)
 10.0.0.1 ms
 10.0.0.2 n1
@@ -21,9 +27,9 @@ $ perl -MCPAN -e "install Parallel::ForkManager"
 
 5. Manager, Master, Slave 양방향 ssh remote login 설정(root, mha 계정)
 $ ssh-keygen -t rsa
-$ ssh-copy-id -i ~/.ssh/id_rsa.pub root@ms
-$ ssh-copy-id -i ~/.ssh/id_rsa.pub root@n1
-$ ssh-copy-id -i ~/.ssh/id_rsa.pub root@m
+$ ssh-copy-id -i ~/.ssh/id_rsa.pub '-p 16215 mhauser@ms'
+$ ssh-copy-id -i ~/.ssh/id_rsa.pub '-p 16215 mhauser@n1'
+$ ssh-copy-id -i ~/.ssh/id_rsa.pub '-p 16215 mhauser@m'
 $ chmod 700 ~/.ssh/
 $ chmod 600 ~/.ssh/authorized_keys
 
@@ -41,6 +47,7 @@ $ make install
 - MHA 디렉토리 생성(Manager)
 $ mkdir -p /mha/bin
 $ mkdir -p /mha/log
+$ chown -R mhauser:mysql /mha
 
 - MHA Manager 설치(Manager)
 $ tar -zxvpf mha4mysql-manager-0.57.tar.gz
@@ -50,11 +57,19 @@ $ perl Makefile.PL
 $ make
 $ make install
 
+- MHA node(master, slave, manager) 
+$ tar -zxvpf mha4mysql-node-0.57.tar.gz
+$ cd mha4mysql-node-0.57
+$ perl Makefile.PL
+$ make
+$ make install
+ 
 7. mha.cnf 생성
 $ vi /etc/mha.cnf
 [server default]
 user=mhauser			# 각각의 node에 접속할 mysql 계정m
 password=mhauser		# 패스워드
+ssh_user=mhauser
 repl_user=replica
 repl_password=tlrhdaleldj!@#
 manager_workdir=/mha
