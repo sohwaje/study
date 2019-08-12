@@ -1,4 +1,7 @@
-1. MySQL replication 1set(2node), MHA managernode 1node
+1. MySQL replication 1set(2node), MHA managernode 1node, VIP 1개
+- 평상시 워크로드 어플리케이션이 Master의 VIP를 바라본다. Master에 장애가 발생하면, MHA 데몬은 Master의 VIP를 Down시키고, Slave를 Master로 승격시키고 Master가 쓰던
+VIP를 UP한다. 
+- 어플리케이션은 계속해서 VIP를 바라보고 있기 때문에 약간의 서비스 지연 후에는 정상적으로 서비스를 지속할 수 있다.
 2. MySQL replication 구성 
 - Master 서버에서 mha MySQL 계정 생성
 mysql> grant all on *.* to 'mhauser'@'%'  identified by 'mhauser'; 
@@ -8,6 +11,10 @@ mysql> flush privileges;
 $ useradd mhauser
 $ vi /etc/sudoers 맨 아래에 아래 내용 추가(sudo를 이용하여 명령어 실행)
 mhauser ALL=NOPASSWD: ALL
+
+- Master와 Slave의 mysql 그룹에 mhauser를 추가한다. (mha replication 테스트를 하려면 mysql binary log에 대한 읽기 권한 필요하기 때문이다.)
+$ vim /etc/group
+mysql:x:501:mhauser
 
 - /etc/hosts 파일에 각 노드의 호스트네임 설정(Master, Slave, Manager)
 10.0.0.1 ms
@@ -33,7 +40,7 @@ $ ssh-copy-id -i ~/.ssh/id_rsa.pub '-p 16215 mhauser@m'
 $ chmod 700 ~/.ssh/
 $ chmod 600 ~/.ssh/authorized_keys
 
-# if using selinux
+# selinux를 사용한다면.
 $ restorecon -R -v ~/.ssh
 
 6. MHA 설치
@@ -83,14 +90,13 @@ master_binlog_dir=/home/mysql_log
 $ cp /mha/mha4mysql-manager-0.57/samples/scripts/master_ip_failover /mha/bin
 $ cp /mha/mha4mysql-manager-0.57/samples/scripts/master_ip_online_change /mha/bin
 
-  if($new_master_ip eq "$MASTER_IP"){
+  if ( $new_master_ip eq "$MASTER_IP" ) {
           system("/bin/sh /mha/bin/change_virtual_ip_slave_to_master.sh");
- }  
-         elsif($new_master_ip eq "$SLAVE_IP"){       
+ }
+         elsif ( $new_master_ip eq "$SLAVE_IP" ) {
           system("/bin/sh /mha/bin/change_virtual_ip_master_to_slave.sh");
-    }
-          $exit_code = 0;
-};
+                }
+        else {}
 
 
 8. vi /mha/bin/change_virtual_ip_master_to_slave.sh  # master to slave vip 전환 스크립트 생성, VIP는 10.10.30.11
