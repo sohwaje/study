@@ -1,0 +1,70 @@
+1. MySQL replication 1set(2node), MHA managernode 1node
+2. MySQL replication 구성 
+- Master 서버에서 mha MySQL 계정 생성
+mysql> grant all on *.* to 'mhauser'@'%'  identified by 'mhauser'; 
+
+출처: https://skibis.tistory.com/98 [Skibi's Notepad]
+3. Perl 모듈 설치
+Master>$ yum -y install perl-CPAN perl-DBD-MySQL perl-Config-Tiny perl-Log-Dispatch perl-Parallel-ForkManager perl-Module-Install
+Slave>$ yum -y install perl-CPAN perl-DBD-MySQL perl-Config-Tiny perl-Log-Dispatch perl-Parallel-ForkManager perl-Module-Install
+Manager>$ yum -y install perl-CPAN perl-DBD-MySQL perl-Config-Tiny perl-Log-Dispatch perl-Parallel-ForkManager perl-Module-Install
+
+4. perl module이 yum으로 설치가 제대로 안되면 전부 설치한다.(Master, Slave, Manager)
+$ yum –y install perl*
+$ perl -MCPAN -e "install Config::Tiny"
+$ perl -MCPAN -e "install Log::Dispatch"
+$ perl -MCPAN -e "install Parallel::ForkManager"
+
+5. Manager, Master, Slave 양방향 ssh remote login 설정(root, mha 계정)
+# configration both A and B
+$ ssh-keygen -t rsa
+$ ssh-copy-id -i ~/.ssh/id_rsa.pub [user]@[host]
+$ chmod 700 ~/.ssh/
+$ chmod 600 ~/.ssh/authorized_keys
+
+# if using selinux
+$ restorecon -R -v ~/.ssh
+
+6. MHA 설치
+- MHA node 설치(Master, Slave, Manager)
+$  tar -zxvpf mha4mysql-node-0.57.tar.gz
+$ cd mha4mysql-node-0.57
+$ perl Makefile.PL
+$ make
+$ make install
+
+- MHA 디렉토리 생성(Manager)
+$ mkdir -p /mha/bin
+$ mkdir -p /mha/log
+
+- MHA Manager 설치(Manager)
+$ tar -zxvpf mha4mysql-manager-0.57.tar.gz
+$ mv mha4mysql-manager-0.57 /mha/
+$ cd mha4mysql-node-0.57
+$ perl Makefile.PL
+$ make
+$ make install
+
+7. mha.cnf 생성
+$ vi /etc/mha.cnf
+[server default]
+user=mhauser			# 각각의 node에 접속할 mysql 계정
+password=mhauser		# 패스워드
+repl_user=replica
+repl_password=tlrhdaleldj!@#
+manager_workdir=/mha
+manager_log=/mha/log/mha.log
+remote_workdir=/mha
+ping_interval = 3
+master_ip_failover_script=/mha/bin/master_ip_failover
+master_ip_online_change_script=/mha/bin/master_ip_online_change
+
+[server1]
+hostname=ms
+master_binlog_dir=/home/mysql_log
+
+[server2]
+hostname=n1
+master_binlog_dir=/home/mysql_log/
+
+
