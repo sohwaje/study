@@ -18,7 +18,7 @@ $ perl -MCPAN -e "install Parallel::ForkManager"
 5. Manager, Master, Slave 양방향 ssh remote login 설정(root, mha 계정)
 # configration both A and B
 $ ssh-keygen -t rsa
-$ ssh-copy-id -i ~/.ssh/id_rsa.pub [user]@[host]
+$ ssh-copy-id -i ~/.ssh/id_rsa.pub root@[host]
 $ chmod 700 ~/.ssh/
 $ chmod 600 ~/.ssh/authorized_keys
 
