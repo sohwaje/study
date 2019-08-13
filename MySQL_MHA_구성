@@ -17,9 +17,11 @@ $ vim /etc/group
 mysql:x:501:mhauser
 
 - /etc/hosts 파일에 각 노드의 호스트네임 설정(Master, Slave, Manager)
+$ cat >> /etc/hosts << EOF
 10.0.0.1 ms
 10.0.0.2 n1
 10.0.0.3 m
+EOF
 
 3. Perl 모듈 설치
 Master>$ yum -y install perl-CPAN perl-DBD-MySQL perl-Config-Tiny perl-Log-Dispatch perl-Parallel-ForkManager perl-Module-Install
@@ -34,6 +36,7 @@ $ perl -MCPAN -e "install Parallel::ForkManager"
 
 5. Manager, Master, Slave 양방향 ssh remote login 설정(root, mha 계정)
 $ ssh-keygen -t rsa
+- Manager, Master, Slave 모두 똑같이 한다.
 $ ssh-copy-id -i ~/.ssh/id_rsa.pub '-p 16215 mhauser@ms'
 $ ssh-copy-id -i ~/.ssh/id_rsa.pub '-p 16215 mhauser@n1'
 $ ssh-copy-id -i ~/.ssh/id_rsa.pub '-p 16215 mhauser@m'
@@ -114,16 +117,66 @@ ssh -p 16215 mhauser@ms sudo /sbin/arping -c3 -D -I eth0 -s 10.10.30.111 10.10.3
 10. mha_start.sh 스크립트 생성
 nohup /mha/mha4mysql-manager-0.57/bin/masterha_manager --conf=/etc/mha.cnf --ignore_last_failover < /dev/null > /mha/log/mha.log 2>&1 &
 
-11. ssh test
+11. master_ip_online_change 편집
+$ vim /mha/bin/master_ip_online_change
+my (
+  $command,              $orig_master_is_new_slave, $orig_master_host,
+  $orig_master_ip,       $orig_master_port,         $orig_master_user,
+  $orig_master_password, $orig_master_ssh_user,     $new_master_host,
+  $new_master_ip,        $new_master_port,          $new_master_user,
+  $new_master_password,  $new_master_ssh_user,      $orig_master_ssh_port,
+  $new_master_ssh_port
+);
+GetOptions(
+  'command=s'                => \$command,
+  'orig_master_is_new_slave' => \$orig_master_is_new_slave,
+  'orig_master_host=s'       => \$orig_master_host,
+  'orig_master_ip=s'         => \$orig_master_ip,
+  'orig_master_port=i'       => \$orig_master_port,
+  'orig_master_user=s'       => \$orig_master_user,
+  'orig_master_password=s'   => \$orig_master_password,
+  'orig_master_ssh_user=s'   => \$orig_master_ssh_user,
+  'orig_master_ssh_port=i'   => \$orig_master_ssh_port,
+  'new_master_host=s'        => \$new_master_host,
+  'new_master_ip=s'          => \$new_master_ip,
+  'new_master_port=i'        => \$new_master_port,
+  'new_master_user=s'        => \$new_master_user,
+  'new_master_password=s'    => \$new_master_password,
+  'new_master_ssh_user=s'    => \$new_master_ssh_user,
+  'new_master_ssh_port=i'    => \$new_master_ssh_port
+
+12. master_ip_failove 편집
+$ vim /mha/bin/master_ip_failove
+my (
+  $command,        $ssh_user,         $orig_master_host,
+  $orig_master_ip, $orig_master_port, $new_master_host,
+  $new_master_ip,  $new_master_port,  $new_master_user,
+  $new_master_password, $orig_master_ssh_port
+);
+GetOptions(
+  'command=s'             => \$command,
+  'ssh_user=s'            => \$ssh_user,
+  'orig_master_host=s'    => \$orig_master_host,
+  'orig_master_ip=s'      => \$orig_master_ip,
+  'orig_master_port=i'    => \$orig_master_port,
+  'orig_master_ssh_port=i'=> \$orig_master_ssh_port,
+  'new_master_host=s'     => \$new_master_host,
+  'new_master_ip=s'       => \$new_master_ip,
+  'new_master_port=i'     => \$new_master_port,
+  'new_master_user=s'     => \$new_master_user,
+  'new_master_password=s' => \$new_master_password,
+);
+
+13. ssh test
 $ su - mhauser 
 $ cd /mha/mha4mysql-manager-0.57/bin
 $ ./masterha_check_ssh --conf=/etc/mha.cnf
 
-12. replication check
+13. replication check
 $ cd /mha/mha4mysql-manager-0.57/bin
 $ ./masterha_check_repl --conf=/etc/mha.cnf
 
-13. MHA 기동
+14. MHA 기동
 $ ./mha_start.sh
 $ ps -ef | grep manager
 
