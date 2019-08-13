@@ -1,0 +1,62 @@
+1. Fail Over TEST
+- Master의 3306 포트를 drop하고 failover가 잘 수행되는지 확인한다.
+master$ iptables -I INPUT -p tcp --dport 3306 -j DROP
+manager$ tail -f mha.log
+
+2. 원복 TEST
+- 온라인 상태에서 장애 원복을 위해 Master장비를 Slave장비의 Slave로 설정
+- MHA Manager에서는 FailOver 발생시 MHA.log에 장애 발생시 binlog position을 남겨둔다.
+- 장애가 발생한 Master에서 Master로 승격된 Slave DB의 데이터를 아래와 같이 동기화 한다.
+- 이렇게 하면 장애가 발생한 Master는 Slave로서 기능한다. 
+$ tail -n1000 /mha/log/mha.log|grep 'All other slaves should start replication from here'|tail -n1
+mysql> CHANGE MASTER TO MASTER_HOST='n1', MASTER_PORT=3306, MASTER_LOG_FILE='mysql-bin.000006', MASTER_LOG_POS=120, MASTER_USER='replica', MASTER_PASSWORD='PASSWORD';
+mysql> start slave;
+mysql> show slave status\G
+
+3. Master로 승격된 Slave DB 확인(show slave status는 비어있고, show master status가 생겨난다.)
+slave>  show slave status\G
+Empty set (0.00 sec)
+slave>  show master status\G
+*************************** 1. row ***************************
+             File: mysql-bin.000006
+         Position: 120
+     Binlog_Do_DB: 
+ Binlog_Ignore_DB: 
+Executed_Gtid_Set: 
+1 row in set (0.00 sec)
+
+4. Manager에서 삭제
+$ rm -f /mha/mha.failover.complete 
+
+5. 수동으로 master_switch 스크립트 실행
+$ cd /mha/mha4mysql-manager-0.57/bin
+./masterha_master_switch --master_state=alive --conf=/etc/mha.cnf
+It is better to execute FLUSH NO_WRITE_TO_BINLOG TABLES on the master before switching. Is it ok to execute on n1(SLAVE_IP:3306)? (YES/no): YES 
+Starting master switch from n1(SLAVE_IP:3306) to ms(MASTER_IP:3306)? (yes/NO): yes
+
+6. 장애가 발생한 Master가 다시 Master DB가 되었다. 기존 Master로 승격된 Slave에서 다시 change master to를 실행한다.
+slave> CHANGE MASTER TO MASTER_HOST='ms', MASTER_PORT=3306, MASTER_LOG_FILE='mysql-bin.000006', MASTER_LOG_POS=195, MASTER_USER='replica', MASTER_PASSWORD='PASSWORD';
+slave> start slave;
+
+7. Master 확인 -> Slave 확인
+master> show master status\G
+*************************** 1. row ***************************
+             File: mysql-bin.000006
+         Position: 195
+slave>show slave status\G
+Master_Log_File: mysql-bin.000006
+Read_Master_Log_Pos: 195
+Relay_Log_File: slave-relay-bin.000001
+Relay_Log_Pos: 4
+Relay_Master_Log_File: mysql-bin.000006
+
+8. 매니저 노드에서 상태 점검
+manager$ ./masterha_check_repl --conf=/etc/mha.cnf
+
+9. 매니저 노드 실행
+manager$ ./mha_start.sh
+
+10. master 상태 점검
+manager$ ./masterha_check_status --conf=/etc/mha.cnf
+mha (pid:15001) is running(0:PING_OK), master:ms
+
