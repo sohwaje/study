@@ -10,7 +10,7 @@ mysql> flush privileges;
 - 모드 노드에 mhauser 리눅스 계정 생성
 $ useradd mhauser
 $ vi /etc/sudoers 맨 아래에 아래 내용 추가(sudo를 이용하여 명령어 실행)
-mhauser ALL=NOPASSWD: ALL
+mhauser ALL=(ALL) NOPASSWD: ALL
 
 - Master와 Slave의 mysql 그룹에 mhauser를 추가한다. (mha replication 테스트를 하려면 mysql binary log에 대한 읽기 권한 필요하기 때문이다.)
 $ vim /etc/group
