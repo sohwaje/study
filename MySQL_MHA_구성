@@ -92,17 +92,17 @@ master_binlog_dir=/home/mysql_log
 $ cp /mha/mha4mysql-manager-0.57/samples/scripts/master_ip_failover /mha/bin
 $ cp /mha/mha4mysql-manager-0.57/samples/scripts/master_ip_online_change /mha/bin
 
-8. vi /mha/bin/change_virtual_ip_master_to_slave.sh  # master to slave vip 전환 스크립트 생성, VIP는 10.10.30.11
+8. vi change_virtual_ip_master_to_slave.sh #마스터(VIP DOWN) -> 슬레이브(VIP UP)
 #!/bin/sh
 ssh -p 16215 mhauser@ms sudo /sbin/ifconfig eth0:0 down
-ssh -p 16215 mhauser@n1 sudo /sbin/ifconfig eth0:0 10.10.30.111 up
-ssh -p 16215 mhauser@n1 sudo /sbin/arping -c3 -D -I eth0 -s 10.10.30.111 10.10.30.111
+ssh -p 16215 mhauser@n1 sudo /sbin/ifconfig eth0:0 1.209.6.252 netmask 255.255.255.0 broadcast 1.209.6.255 up
+ssh -p 16215 mhauser@n1 sudo /sbin/arping -c3 -D -I eth0 -s 1.209.6.252 1.209.6.252
 
-9. vi /mha/bin/change_virtual_ip_slave_to_master.sh  # slave to master vip 전환 스크립트 생성
+9. vi change_virtual_ip_slave_to_master.sh #슬레이브(VIP DOWN) -> 마스터(VIP UP)
 #!/bin/sh
 ssh -p 16215 mhauser@n1 sudo /sbin/ifconfig eth0:0 down
-ssh -p 16215 mhauser@ms sudo /sbin/ifconfig eth0:0 10.10.30.111 netmask 255.255.255.0 broadcast 10.10.30.255 up
-ssh -p 16215 mhauser@ms sudo /sbin/arping -c3 -D -I eth0 -s 10.10.30.111 10.10.30.111
+ssh -p 16215 mhauser@ms sudo /sbin/ifconfig eth0:0 1.209.6.252 netmask 255.255.255.0 broadcast 1.209.6.255 up
+ssh -p 16215 mhauser@ms sudo /sbin/arping -c3 -D -I eth0 -s 1.209.6.252 1.209.6.252
 
 10. mha_start.sh 스크립트 생성
 nohup /mha/mha4mysql-manager-0.57/bin/masterha_manager --conf=/etc/mha.cnf --ignore_last_failover < /dev/null > /mha/log/mha.log 2>&1 &
